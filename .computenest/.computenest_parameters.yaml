@@ -18,9 +18,9 @@ CustomParameters:
   AllowedPattern: ''
   Label: 百练模型名称
   ConstraintDescription: ''
-  Default: 'qwen-max'
+  Default: qwen-max
   Name: AT_FORCE_LLM_MODEL
 DockerComposeYamlPath: docker-compose.yml
 Owner: workhardliuzheng
-Branch: liuzheng
+Branch: liuzheng-test
 Platform: github
