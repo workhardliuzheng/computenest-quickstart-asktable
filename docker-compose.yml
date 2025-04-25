@@ -12,8 +12,6 @@ services:
       TZ: Asia/Shanghai
       BASE_URL: ${BASE_URL}        # 【须修改】容器对外暴露的地址（即从外部比如浏览器访问的地址）
       LLM_API_KEY: ${LLM_API_KEY}           # 【须修改】AI 模型令牌，是以“asktable-”开头的字符串。登录 AskTable(https://cloud.asktable.com/?dialog=deployment) 获取。
-      LLM_BASE_URL: https://dashscope.aliyuncs.com/compatible-mode/v1
-      AT_FORCE_LLM_MODEL: ${AT_FORCE_LLM_MODEL}
       MYSQL_HOST: asktable_mysql               # MySQL 数据库地址（该 MySQL 是 AskTable 数据库，并不是希望利用 AskTable 去查询的数据库，后者需要在 Web 页面上添加）
       MYSQL_USER: asktable                     # MySQL 数据库用户名
       MYSQL_PASSWORD: asktable                 # MySQL 数据库密码
