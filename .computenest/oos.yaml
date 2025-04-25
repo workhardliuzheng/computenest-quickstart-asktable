@@ -1,0 +1,95 @@
+FormatVersion: OOS-2019-06-01
+Description:
+  name-en: Run Command
+  name-zh-cn: 发送远程命令
+  categories:
+    - run_command
+    - application_manage
+    - computenest
+    - tag_operate_resource
+Parameters:
+  regionId:
+    Type: String
+    Label:
+      en: RegionId
+      zh-cn: 地域ID
+    AssociationProperty: RegionId
+    Default: '{{ ACS::RegionId }}'
+  targets:
+    Type: Json
+    Label:
+      en: TargetInstance
+      zh-cn: 目标实例
+    AssociationProperty: Targets
+    AssociationPropertyMetadata:
+      ResourceType: ALIYUN::ECS::Instance
+      RegionId: regionId
+      Status: Running
+  OOSAssumeRole:
+    Label:
+      en: OOSAssumeRole
+      zh-cn: OOS扮演的RAM角色
+    Type: String
+    Default: ''
+RamRole: '{{ OOSAssumeRole }}'
+Tasks:
+  - Name: getInstance
+    Description:
+      en: Views the ECS instances
+      zh-cn: 获取ECS实例
+    Action: ACS::SelectTargets
+    Properties:
+      RegionId: '{{ regionId }}'
+      ResourceType: ALIYUN::ECS::Instance
+      Filters:
+        - '{{ targets }}'
+    Outputs:
+      instanceIds:
+        Type: List
+        ValueSelector: Instances.Instance[].InstanceId
+  - Name: runCommand
+    Action: ACS::ECS::RunCommand
+    Description:
+      en: Execute cloud assistant command
+      zh-cn: 执行云助手命令
+    Properties:
+      regionId: '{{ regionId }}'
+      commandContent:
+        |
+        systemctl is-active --quiet quickstart-asktable && systemctl stop quickstart-asktable
+        /usr/bin/docker compose pull asktable
+        systemctl start quickstart-asktable
+      instanceId: '{{ ACS::TaskLoopItem }}'
+      commandType: RunShellScript
+      workingDir: /root/application
+      timeout: 6000
+    Loop:
+      Items: '{{ getInstance.instanceIds }}'
+      Outputs:
+        commandOutputs:
+          AggregateType: Fn::ListJoin
+          AggregateField: commandOutput
+    Outputs:
+      commandOutput:
+        Type: String
+        ValueSelector: invocationOutput
+Outputs:
+  commandOutputs:
+    Type: List
+    Value: '{{ runCommand.commandOutputs }}'
+Metadata:
+  ALIYUN::OOS::Interface:
+    ParameterGroups:
+      - Parameters:
+          - regionId
+          - targets
+        Label:
+          default:
+            zh-cn: 选择实例
+            en: Select Ecs Instances
+      - Parameters:
+          - OOSAssumeRole
+        Label:
+          default:
+            zh-cn: 高级选项
+            en: Control Options
