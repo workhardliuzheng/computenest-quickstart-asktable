@@ -377,6 +377,7 @@ Resources:
             
             fi
             cat > /root/application/.env << "EOF"
+            BASE_URL=http://${ServerAddress}:8000
             {{ serviceConfigParam }}
             EOF
 
@@ -385,6 +386,12 @@ Resources:
             systemctl start quickstart-asktable
           - RegionId:
               Ref: ALIYUN::Region
+            ServerAddress:
+              Fn::Select:
+                - 0
+                - Fn::GetAtt:
+                    - InstanceGroup
+                    - PublicIps
 Outputs: 
   asktable_address:
     Description:
@@ -393,19 +400,6 @@ Outputs:
     Value:
       Fn::Sub:
         - http://${ServerAddress}:8000
-        - ServerAddress:
-            Fn::Select:
-              - 0
-              - Fn::GetAtt:
-                  - InstanceGroup
-                  - PublicIps
-  asktable_mysql_address:
-    Description:
-      en: asktable_mysql address.
-      zh-cn: asktable_mysql 访问页面。
-    Value:
-      Fn::Sub:
-        - http://${ServerAddress}:3306
         - ServerAddress:
             Fn::Select:
               - 0
