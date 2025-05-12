@@ -4,12 +4,6 @@ Conditions:
     Fn::Equals:
       - NewVPC
       - Ref: VpcOption
-  InsideCondition:
-    Fn::Equals:
-      - Fn::MatchPattern:
-          - ^cn-.*
-          - Ref: ALIYUN::Region
-      - true
 Parameters:
   VpcOption:
     Type: String
@@ -200,28 +194,6 @@ Parameters:
           Fn::Equals:
             - ExistingVPC
             - ${VpcOption}
-  API_KEY:
-    Type: String
-    AllowedPattern: ''
-    Label: AI 大模型api-key
-    ConstraintDescription: ''
-    Default: ''
-    Description: '是以“asktable-”开头的字符串。登录 AskTable(https://cloud.asktable.com/?dialog=deployment) 获取'
-    Required: true
-  ADMIN_NAME:
-    Type: String
-    Label: 管理员账号
-    Default: admin@asktable.com
-    Description: 管理员账号，请填写邮箱，用于登录
-    AllowedPattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-    Required: true
-  PASSWORD:
-    Type: String
-    Label: 管理员密码
-    Required: true
-    NoEcho: true
-    Description: 管理员密码，请填写字母和数字的组合，不能包含特殊字符
-    AllowedPattern: '^[A-Za-z0-9]+$'
 Resources:
   # 新建vpc
   EcsVpc:
@@ -290,7 +262,7 @@ Resources:
         Ref: ZoneId
       SecurityGroupId:
         Ref: SecurityGroup
-      ImageId: ecs_image_quickstart-asktable
+      ImageId: ecs_image_computenest-quickstart-asktable
       Password:
         Ref: InstancePassword
       InstanceType:
@@ -305,53 +277,15 @@ Resources:
     Properties:
       InstanceIds:
         Fn::GetAtt:
-          - InstanceGroup
-          - InstanceIds
+        - InstanceGroup
+        - InstanceIds
       Type: RunShellScript
       Sync: true
       Timeout: 3600
       CommandContent:
         Fn::Sub:
           - |
-            cat > /root/application/docker-compose.yml << EOF
-            services:
-              asktable:
-                # AskTable
-                image: ${ImageId}   # 其他地区
-                container_name: asktable
-                depends_on:
-                  - asktable_mysql
-                ports:
-                  - 8000:80
-                environment:
-                  TZ: Asia/Shanghai
-                  BASE_URL: http://${ServerAddress}:8000       # 【须修改】容器对外暴露的地址（即从外部比如浏览器访问的地址）
-                  LLM_API_KEY: ${API_KEY}         # 【须修改】AI 模型令牌，是以“asktable-”开头的字符串。登录 AskTable(https://cloud.asktable.com/?dialog=deployment) 获取。
-                  MYSQL_HOST: asktable_mysql               # MySQL 数据库地址（该 MySQL 是 AskTable 数据库，并不是希望利用 AskTable 去查询的数据库，后者需要在 Web 页面上添加）
-                  MYSQL_USER: asktable                     # MySQL 数据库用户名
-                  MYSQL_PASSWORD: asktable                 # MySQL 数据库密码
-                  MYSQL_DB: asktable                       # MySQL 数据库名称
-                  AUTH_EMAIL_INIT_ADMIN_EMAIL: ${ADMIN_NAME}
-                  AUTH_EMAIL_INIT_ADMIN_PASSWORD: ${PASSWORD}
-                volumes:
-                  - ./asktable_data:/asktable
-              asktable_mysql:
-                #image: registry.cn-shanghai.aliyuncs.com/dminfra/mysql:8.0.27  # 中国大陆地区
-                image: ${MysqlImageId}    # 其他地区
-                container_name: asktable_mysql
-                ports:
-                  - "3306:3306"
-                environment:
-                  TZ: Asia/Shanghai
-                  MYSQL_ROOT_PASSWORD: asktable
-                  MYSQL_DATABASE: asktable
-                  MYSQL_USER: asktable
-                  MYSQL_PASSWORD: asktable
-                volumes:
-                  - ./mysql_data:/var/lib/mysql
-            EOF
-            
-            file_path="/etc/systemd/system/quickstart-asktable.service"
+            file_path="/etc/systemd/system/computenest-quickstart-asktable.service"
             if [ ! -f "$file_path" ]; then
             cat > $file_path <<EOF
             [Unit]
@@ -439,36 +373,19 @@ Resources:
             EOF
 
             chmod +x /usr/local/bin/check-container-status
-            systemctl enable quickstart-asktable
+            systemctl enable computenest-quickstart-asktable
             
             fi
-            
-            # 重新构建docker compose，拉取镜像
-            docker compose -f /root/application/docker-compose.yml build 
-            docker compose -f /root/application/docker-compose.yml pull 2>&1 | stdbuf -oL grep -viE 'Downloading|sha256|extracting|KiB|Downloaded' || true;
+            cat > /root/application/.env << "EOF"
+            {{ serviceConfigParam }}
+            EOF
 
-            systemctl is-active --quiet quickstart-asktable && systemctl stop quickstart-asktable
+            systemctl is-active --quiet computenest-quickstart-asktable && systemctl stop computenest-quickstart-asktable
             systemctl daemon-reload
-            systemctl start quickstart-asktable
+            systemctl start computenest-quickstart-asktable
           - RegionId:
               Ref: ALIYUN::Region
-            ServerAddress:
-              Fn::Select:
-                - 0
-                - Fn::GetAtt:
-                    - InstanceGroup
-                    - PublicIps
-            ImageId:
-              Fn::If:
-                - InsideCondition
-                - registry.cn-shanghai.aliyuncs.com/datamini/asktable-all-in-one:latest
-                - datamini/asktable-all-in-one:latest
-            MysqlImageId:
-              Fn::If:
-                - InsideCondition
-                - registry.cn-shanghai.aliyuncs.com/dminfra/mysql:8.0.27
-                - mysql:8.0.27
-Outputs:
+Outputs: 
   asktable_address:
     Description:
       en: asktable address.
@@ -476,6 +393,19 @@ Outputs:
     Value:
       Fn::Sub:
         - http://${ServerAddress}:8000
+        - ServerAddress:
+            Fn::Select:
+              - 0
+              - Fn::GetAtt:
+                  - InstanceGroup
+                  - PublicIps
+  asktable_mysql_address:
+    Description:
+      en: asktable_mysql address.
+      zh-cn: asktable_mysql 访问页面。
+    Value:
+      Fn::Sub:
+        - http://${ServerAddress}:3306
         - ServerAddress:
             Fn::Select:
               - 0
@@ -505,9 +435,3 @@ Metadata:
           - VSwitchCidrBlock
         Label:
           default: 可用区配置
-      - Parameters:
-          - API_KEY
-          - ADMIN_NAME
-          - PASSWORD
-        Label:
-          default: AskTable应用配置

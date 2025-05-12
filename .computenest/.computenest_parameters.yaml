@@ -1,1 +1,20 @@
-{"RepoName":"workhardliuzheng/computenest-quickstart-asktable","RegionId":"cn-hangzhou","Owner":"workhardliuzheng","Branch":"main","Platform":"github"}
+RuntimeType: Container
+ServiceType: private
+ArtifactSourceType: DockerCompose
+ServiceBuildRegion: ap-southeast-1
+RepoName: workhardliuzheng/computenest-quickstart-asktable
+DockerComposeEnvPath: .env
+RegionId: cn-hangzhou
+CustomParameters:
+- NoEcho: false
+  Type: String
+  Description: 测试描述
+  Required: true
+  AllowedPattern: ''
+  Label: 测试
+  ConstraintDescription: ''
+  Name: Test
+DockerComposeYamlPath: docker-compose.yml
+Owner: workhardliuzheng
+Branch: main
+Platform: github
