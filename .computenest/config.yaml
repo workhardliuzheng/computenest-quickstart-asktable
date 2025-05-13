@@ -29,6 +29,8 @@ Service:
           Type: String
           Default: ''
           Description: 测试
+          Label: 测试
+          Required: true
       Metadata:
         ParameterGroups:
         - Parameters:
