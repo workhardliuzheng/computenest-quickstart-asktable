@@ -228,12 +228,12 @@ Resources:
           - Ref: EcsVpc
           - Ref: VpcId
       SecurityGroupIngress:
-        - PortRange: 8000/8000
+        - PortRange: 3306/3306
           Priority: 1
           SourceCidrIp: 0.0.0.0/0
           IpProtocol: tcp
           NicType: internet
-        - PortRange: 3306/3306
+        - PortRange: 8000/8000
           Priority: 1
           SourceCidrIp: 0.0.0.0/0
           IpProtocol: tcp
