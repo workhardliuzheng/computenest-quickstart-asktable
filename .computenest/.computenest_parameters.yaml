@@ -1,3 +1,4 @@
+SystemDiskSize: 40
 RuntimeType: Container
 ServiceType: private
 ArtifactSourceType: DockerCompose
@@ -5,23 +6,6 @@ ServiceBuildRegion: ap-southeast-1
 RepoName: workhardliuzheng/computenest-quickstart-asktable
 DockerComposeEnvPath: .env
 RegionId: cn-hangzhou
-CustomParameters:
-- NoEcho: false
-  Type: String
-  Description: 测试描述
-  Required: true
-  AllowedPattern: ''
-  Label: 测试
-  ConstraintDescription: ''
-  Name: Test
-- NoEcho: false
-  Type: String
-  Description: 测试描述
-  Required: false
-  AllowedPattern: ''
-  Label: 测试2
-  ConstraintDescription: ''
-  Name: Test2
 DockerComposeYamlPath: docker-compose.yml
 Owner: workhardliuzheng
 Branch: main

@@ -430,11 +430,7 @@ Resources:
             }
 
             function create_custom_parameter_file() {
-                cat > /root/application/.env << "EOF"
-            {{ serviceConfigParam }}
-            EOF
-
-                systemctl is-active --quiet computenest-quickstart-asktable && systemctl stop computenest-quickstart-asktable
+                echo "The custom parameter does not exist. Skip the processing"
             }
 
             function mount_data_disk_dir() {
